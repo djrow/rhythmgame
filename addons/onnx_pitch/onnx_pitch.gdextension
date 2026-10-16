@@ -10,6 +10,8 @@ windows.debug.x86_64 = "res://addons/onnx_pitch/bin/libonnx_pitch.windows.x86_64
 windows.release.x86_64 = "res://addons/onnx_pitch/bin/libonnx_pitch.windows.x86_64.dll"
 android.debug.arm64 = "res://addons/onnx_pitch/bin/libonnx_pitch.android.arm64.so"
 android.release.arm64 = "res://addons/onnx_pitch/bin/libonnx_pitch.android.arm64.so"
+macos.debug = "res://addons/onnx_pitch/bin/libonnx_pitch.macos.dylib"
+macos.release = "res://addons/onnx_pitch/bin/libonnx_pitch.macos.dylib"
 ios.debug = "res://addons/onnx_pitch/bin/onnx_pitch.ios.xcframework"
 ios.release = "res://addons/onnx_pitch/bin/onnx_pitch.ios.xcframework"
 
@@ -26,10 +28,4 @@ android.debug.arm64 = {
 }
 android.release.arm64 = {
     "res://addons/onnx_pitch/bin/libonnxruntime.so": ""
-}
-ios.debug = {
-    "res://addons/onnx_pitch/bin/onnxruntime.xcframework": ""
-}
-ios.release = {
-    "res://addons/onnx_pitch/bin/onnxruntime.xcframework": ""
 }
