@@ -1,0 +1,15 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+tools/.zig/
+/build/
+/micgame3.apk
+/micgame3.apk.idsig
+/micgame3.exe
+/micgame3.console.exe
+/libonnx_pitch.windows.x86_64.dll
+/onnxruntime.dll
+__pycache__/
+*.pyc
+.pytest_cache/
+

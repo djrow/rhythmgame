@@ -1,0 +1,35 @@
+[configuration]
+
+entry_symbol = "onnx_pitch_library_init"
+compatibility_minimum = "4.3"
+reloadable = false
+
+[libraries]
+
+windows.debug.x86_64 = "res://addons/onnx_pitch/bin/libonnx_pitch.windows.x86_64.dll"
+windows.release.x86_64 = "res://addons/onnx_pitch/bin/libonnx_pitch.windows.x86_64.dll"
+android.debug.arm64 = "res://addons/onnx_pitch/bin/libonnx_pitch.android.arm64.so"
+android.release.arm64 = "res://addons/onnx_pitch/bin/libonnx_pitch.android.arm64.so"
+ios.debug = "res://addons/onnx_pitch/bin/onnx_pitch.ios.xcframework"
+ios.release = "res://addons/onnx_pitch/bin/onnx_pitch.ios.xcframework"
+
+[dependencies]
+
+windows.debug.x86_64 = {
+    "res://addons/onnx_pitch/bin/onnxruntime.dll": ""
+}
+windows.release.x86_64 = {
+    "res://addons/onnx_pitch/bin/onnxruntime.dll": ""
+}
+android.debug.arm64 = {
+    "res://addons/onnx_pitch/bin/libonnxruntime.so": ""
+}
+android.release.arm64 = {
+    "res://addons/onnx_pitch/bin/libonnxruntime.so": ""
+}
+ios.debug = {
+    "res://addons/onnx_pitch/bin/onnxruntime.xcframework": ""
+}
+ios.release = {
+    "res://addons/onnx_pitch/bin/onnxruntime.xcframework": ""
+}
