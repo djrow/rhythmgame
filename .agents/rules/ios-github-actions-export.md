@@ -16,4 +16,5 @@ description: Guidelines for non-interactive Git operations on Windows and headle
 3. **iOS & macOS GDExtension Packaging (`onnx_pitch.gdextension`)**:
    - The official `pod-archive-onnxruntime-c-<version>.zip` archive provides static `.framework` binaries for `ios-arm64`, `ios-arm64_x86_64-simulator`, and `macos-arm64_x86_64`.
    - Compile `native/onnx_pitch_gdextension.c` as C and link each platform slice as a Mach-O `.dylib` (`clang++ -dynamiclib ... -lc++ -framework Foundation -framework CoreFoundation -framework Accelerate`) before wrapping the iOS slices in `onnx_pitch.ios.xcframework`. Also build `libonnx_pitch.macos.dylib` so headless Godot on the macOS CI runner loads the GDExtension without errors during export.
+   - Use `runs-on: macos-26` in `.github/workflows/ios_build.yml` to match the Xcode 26 / iOS 26 SDK used by Godot 4.7.2's official `libgodot.a` export templates (`_MTLTensorDomain`, `_CADynamicRangeAutomatic`, `swift_Builtin_float`).
    - Never hide `Godot --export-debug` or `xcodebuild` errors behind `|| true` in `.github/workflows/ios_build.yml`; always assert `test -s build/ios/micgame3-unsigned.ipa` before uploading artifacts.
