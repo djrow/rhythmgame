@@ -24,7 +24,7 @@ var current_display_gain: float = 1.0
 func _init() -> void:
 	waveform_buffer.resize(512)
 	waveform_buffer.fill(0.0)
-	custom_minimum_size = Vector2(440, 150)
+	custom_minimum_size = Vector2(400, 110)
 
 func update_waveform(samples: PackedFloat32Array, rms: float, rms_db: float, gated: bool, sr: int = 48000) -> void:
 	if not samples.is_empty():
