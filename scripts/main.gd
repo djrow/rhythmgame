@@ -31,9 +31,6 @@ var _onnx_server_pid: int = -1
 var _test_tone_timer: float = 0.0
 var _test_tone_pitches: Array = [60, 64, 67]
 var _loop_restart_timer: float = -1.0
-var _sfx_player: AudioStreamPlayer = null
-var _hit_sfx: AudioStreamWAV = null
-var _miss_sfx: AudioStreamWAV = null
 
 func _ready() -> void:
 	# Ensure Master audio bus is explicitly unmuted at full volume (0 dB)
@@ -41,8 +38,6 @@ func _ready() -> void:
 	if master_idx != -1:
 		AudioServer.set_bus_mute(master_idx, false)
 		AudioServer.set_bus_volume_db(master_idx, 0.0)
-
-	_setup_sfx()
 
 	# Android runtime audio capture permission
 	if OS.get_name() == "Android":
@@ -71,49 +66,6 @@ func _ready() -> void:
 
 	scoring_engine.reset()
 	highway.start_playback()
-
-func _setup_sfx() -> void:
-	var sample_rate: int = 44100
-
-	# 1. Crisp woodblock/percussion hit tick (45ms)
-	var hit_samples: int = int(sample_rate * 0.045)
-	var hit_pcm = PackedByteArray()
-	hit_pcm.resize(hit_samples * 2)
-	for i in range(hit_samples):
-		var t: float = float(i) / float(sample_rate)
-		var env: float = exp(-t * 90.0)
-		var val: float = (sin(t * 920.0 * TAU) * 0.65 + sin(t * 1840.0 * TAU) * 0.35) * env
-		var s16: int = clampi(int(round(val * 24000.0)), -32767, 32767)
-		hit_pcm.encode_s16(i * 2, s16)
-
-	_hit_sfx = AudioStreamWAV.new()
-	_hit_sfx.format = AudioStreamWAV.FORMAT_16_BITS
-	_hit_sfx.mix_rate = sample_rate
-	_hit_sfx.stereo = false
-	_hit_sfx.data = hit_pcm
-
-	# 2. Subtle low miss thud (60ms)
-	var miss_samples: int = int(sample_rate * 0.060)
-	var miss_pcm = PackedByteArray()
-	miss_pcm.resize(miss_samples * 2)
-	for i in range(miss_samples):
-		var t: float = float(i) / float(sample_rate)
-		var env: float = exp(-t * 50.0)
-		var val: float = sin(t * 180.0 * TAU) * env * 0.5
-		var s16: int = clampi(int(round(val * 18000.0)), -32767, 32767)
-		miss_pcm.encode_s16(i * 2, s16)
-
-	_miss_sfx = AudioStreamWAV.new()
-	_miss_sfx.format = AudioStreamWAV.FORMAT_16_BITS
-	_miss_sfx.mix_rate = sample_rate
-	_miss_sfx.stereo = false
-	_miss_sfx.data = miss_pcm
-
-	_sfx_player = AudioStreamPlayer.new()
-	_sfx_player.name = "SFXPlayer"
-	_sfx_player.bus = &"Master"
-	_sfx_player.stream = _hit_sfx
-	add_child(_sfx_player)
 
 func _exit_tree() -> void:
 	if pitch_model != null and pitch_model.has_method("disconnect_from_server"):
@@ -344,13 +296,6 @@ func _process(delta: float) -> void:
 				load_piece(selected_piece, load_via_omr)
 			highway.start_playback()
 
-	# 4. Check if audio accompaniment playback was halted unexpectedly by mobile OS (e.g. permission prompt)
-	if highway != null and highway.is_playing and audio_player != null and audio_player.stream != null:
-		if not audio_player.playing:
-			var dur: float = audio_player.stream.get_length()
-			if dur > 0.0 and highway.current_song_time < dur - 0.2:
-				audio_player.play(highway.current_song_time)
-
 func _update_hud_diagnostics() -> void:
 	if hud == null:
 		return
@@ -571,11 +516,6 @@ func _on_highway_note_missed(note: NoteData) -> void:
 	if scoring_engine:
 		var note_dict: Dictionary = note.to_dict()
 		scoring_engine.register_miss(note_dict)
-	if _sfx_player != null and _miss_sfx != null:
-		_sfx_player.stream = _miss_sfx
-		_sfx_player.pitch_scale = 1.0
-		_sfx_player.volume_db = -8.0
-		_sfx_player.play()
 
 func _on_judgment_recorded(judgment: String, _points: int, _cur_score: int, _cur_combo: int, _cur_multiplier: int, note_data: Dictionary) -> void:
 	var y_pos: float = float(note_data.get("y_pos", 360.0))
@@ -583,16 +523,6 @@ func _on_judgment_recorded(judgment: String, _points: int, _cur_score: int, _cur
 		highway.trigger_hit_pulse(y_pos, judgment)
 	if hud:
 		hud.spawn_judgment_popup(judgment, Vector2(Highway.HIT_X, y_pos))
-
-	if _sfx_player != null and _hit_sfx != null:
-		_sfx_player.stream = _hit_sfx
-		if judgment == "PERFECT":
-			_sfx_player.pitch_scale = 1.0
-			_sfx_player.volume_db = -1.0
-		else:
-			_sfx_player.pitch_scale = 0.88
-			_sfx_player.volume_db = -2.0
-		_sfx_player.play()
 
 func _on_score_changed(new_score: int) -> void:
 	if hud:

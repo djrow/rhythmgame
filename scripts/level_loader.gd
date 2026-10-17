@@ -170,6 +170,8 @@ func load_audio_stream(audio_path: String) -> AudioStream:
 	if ResourceLoader.has_cached(audio_path) or ResourceLoader.exists(audio_path):
 		var res = load(audio_path)
 		if res is AudioStream:
+			if res is AudioStreamWAV:
+				res.loop_mode = AudioStreamWAV.LOOP_FORWARD
 			return res
 
 	# 2. Check localized and globalized filesystem paths for unimported / loose runtime files
@@ -190,12 +192,19 @@ func load_audio_stream(audio_path: String) -> AudioStream:
 
 	var ext = resolved_path.get_extension().to_lower()
 	if ext == "wav":
-		return _load_wav_from_bytes(bytes)
+		var wav = _load_wav_from_bytes(bytes)
+		if wav:
+			wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		return wav
 	elif ext == "ogg":
-		return AudioStreamOggVorbis.load_from_buffer(bytes)
+		var ogg = AudioStreamOggVorbis.load_from_buffer(bytes)
+		if ogg:
+			ogg.loop = true
+		return ogg
 	elif ext == "mp3":
 		var mp3 = AudioStreamMP3.new()
 		mp3.data = bytes
+		mp3.loop = true
 		return mp3
 	else:
 		push_error("LevelLoader: Unsupported audio format extension: " + ext)

@@ -61,6 +61,8 @@ var _onset_flash_timer: float = 0.0
 func _ready() -> void:
 	_build_diagnostic_ui()
 	_apply_mobile_safe_area()
+	if get_viewport() != null:
+		get_viewport().size_changed.connect(_apply_mobile_safe_area)
 	update_score(0)
 	update_combo(0, 1)
 	refresh_microphone_dropdown()
@@ -130,33 +132,33 @@ func _build_diagnostic_ui() -> void:
 	custom_song_button.pressed.connect(_on_custom_song_button_pressed)
 	top_hbox.add_child(custom_song_button)
 
-	# Bottom Audio, Oscilloscope & Inference Diagnostic Dock (Y = 522..708)
+	# Bottom Audio, Oscilloscope & Inference Diagnostic Dock (Y = 542..688, compact 146px height)
 	diagnostic_dock = PanelContainer.new()
 	diagnostic_dock.name = "AudioInferenceDock"
-	diagnostic_dock.position = Vector2(20, 520)
-	diagnostic_dock.size = Vector2(1240, 186)
+	diagnostic_dock.position = Vector2(20, 542)
+	diagnostic_dock.size = Vector2(1240, 146)
 
 	var dock_style := StyleBoxFlat.new()
 	dock_style.bg_color = Color(0.05, 0.07, 0.12, 0.94)
 	dock_style.border_color = Color(0.20, 0.35, 0.55, 0.90)
 	dock_style.set_border_width_all(2)
 	dock_style.set_corner_radius_all(8)
-	dock_style.content_margin_left = 14
-	dock_style.content_margin_right = 14
-	dock_style.content_margin_top = 10
-	dock_style.content_margin_bottom = 10
+	dock_style.content_margin_left = 12
+	dock_style.content_margin_right = 12
+	dock_style.content_margin_top = 8
+	dock_style.content_margin_bottom = 8
 	diagnostic_dock.add_theme_stylebox_override("panel", dock_style)
 	add_child(diagnostic_dock)
 	_build_custom_song_modal()
 
 	var main_hbox := HBoxContainer.new()
-	main_hbox.add_theme_constant_override("separation", 18)
+	main_hbox.add_theme_constant_override("separation", 14)
 	diagnostic_dock.add_child(main_hbox)
 
-	# --- Column 1: Microphone Selection & Input Status (Width: 365px) ---
+	# --- Column 1: Microphone Selection & Input Status (Width: 350px) ---
 	var mic_vbox := VBoxContainer.new()
-	mic_vbox.custom_minimum_size = Vector2(365, 160)
-	mic_vbox.add_theme_constant_override("separation", 6)
+	mic_vbox.custom_minimum_size = Vector2(350, 126)
+	mic_vbox.add_theme_constant_override("separation", 4)
 	main_hbox.add_child(mic_vbox)
 
 	var mic_header_hbox := HBoxContainer.new()
@@ -188,7 +190,7 @@ func _build_diagnostic_ui() -> void:
 
 	mic_dropdown = OptionButton.new()
 	mic_dropdown.name = "MicDropdown"
-	mic_dropdown.custom_minimum_size = Vector2(285, 32)
+	mic_dropdown.custom_minimum_size = Vector2(285, 30)
 	mic_dropdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mic_dropdown.focus_mode = Control.FOCUS_NONE
 	mic_dropdown.clip_text = true
@@ -200,7 +202,7 @@ func _build_diagnostic_ui() -> void:
 	refresh_mic_button.name = "RefreshMicButton"
 	refresh_mic_button.text = "↻"
 	refresh_mic_button.tooltip_text = "Refresh Microphone Devices"
-	refresh_mic_button.custom_minimum_size = Vector2(34, 32)
+	refresh_mic_button.custom_minimum_size = Vector2(32, 30)
 	refresh_mic_button.focus_mode = Control.FOCUS_NONE
 	refresh_mic_button.pressed.connect(_on_refresh_mic_pressed)
 	dropdown_hbox.add_child(refresh_mic_button)
@@ -219,24 +221,24 @@ func _build_diagnostic_ui() -> void:
 	test_signal_button = Button.new()
 	test_signal_button.name = "TestSignalButton"
 	test_signal_button.text = "🔊 Inject Test Chord (Verify Scope + Model)"
-	test_signal_button.custom_minimum_size = Vector2(280, 28)
+	test_signal_button.custom_minimum_size = Vector2(280, 26)
 	test_signal_button.focus_mode = Control.FOCUS_NONE
-	test_signal_button.add_theme_font_size_override("font_size", 12)
+	test_signal_button.add_theme_font_size_override("font_size", 11)
 	test_signal_button.pressed.connect(func(): test_signal_requested.emit())
 	test_hbox.add_child(test_signal_button)
 
-	# --- Column 2: Real-Time Oscilloscope View (Width: 460px) ---
+	# --- Column 2: Real-Time Oscilloscope View (Width: 440px, Height: 126px) ---
 	oscilloscope_view = OscilloscopeViewScript.new()
 	oscilloscope_view.name = "OscilloscopeView"
-	oscilloscope_view.custom_minimum_size = Vector2(460, 164)
+	oscilloscope_view.custom_minimum_size = Vector2(440, 126)
 	oscilloscope_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	oscilloscope_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main_hbox.add_child(oscilloscope_view)
 
 	# --- Column 3: Inference Model Telemetry & Detected Pitches (Width: 350px) ---
 	var inf_vbox := VBoxContainer.new()
-	inf_vbox.custom_minimum_size = Vector2(350, 160)
-	inf_vbox.add_theme_constant_override("separation", 6)
+	inf_vbox.custom_minimum_size = Vector2(350, 126)
+	inf_vbox.add_theme_constant_override("separation", 4)
 	main_hbox.add_child(inf_vbox)
 
 	var inf_title := Label.new()
@@ -498,17 +500,19 @@ func _apply_mobile_safe_area() -> void:
 		return
 	var scale_x: float = 1280.0 / float(win_size.x)
 	var scale_y: float = 720.0 / float(win_size.y)
-	var left_inset: float = maxf(20.0, float(safe_rect.position.x) * scale_x + 12.0)
+	var left_inset: float = maxf(20.0, float(safe_rect.position.x) * scale_x + 8.0)
 	var top_inset: float = maxf(16.0, float(safe_rect.position.y) * scale_y + 8.0)
-	var right_inset: float = maxf(20.0, float(win_size.x - (safe_rect.position.x + safe_rect.size.x)) * scale_x + 12.0)
-	var bottom_inset: float = maxf(14.0, float(win_size.y - (safe_rect.position.y + safe_rect.size.y)) * scale_y + 8.0)
+	var right_inset: float = maxf(20.0, float(win_size.x - (safe_rect.position.x + safe_rect.size.x)) * scale_x + 8.0)
+	var bottom_inset: float = maxf(8.0, float(win_size.y - (safe_rect.position.y + safe_rect.size.y)) * scale_y + 6.0)
 
 	if top_info_bar != null:
 		top_info_bar.position = Vector2(left_inset, top_inset)
 	if diagnostic_dock != null:
 		var dock_w: float = maxf(960.0, 1280.0 - left_inset - right_inset)
-		diagnostic_dock.position = Vector2(left_inset, 720.0 - 186.0 - bottom_inset)
-		diagnostic_dock.size = Vector2(dock_w, 186.0)
+		var dock_h: float = 146.0
+		var dock_y: float = clampf(720.0 - dock_h - bottom_inset, 510.0, 545.0)
+		diagnostic_dock.position = Vector2(left_inset, dock_y)
+		diagnostic_dock.size = Vector2(dock_w, dock_h)
 
 func _build_custom_song_modal() -> void:
 	if custom_song_modal != null:
