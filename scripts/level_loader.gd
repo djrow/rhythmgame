@@ -163,6 +163,16 @@ func load_chart_from_omr(score_image_path: String, bpm: float = 120.0, time_sig:
 
 ## Loads audio stream from WAV, MP3, or OGG file
 func load_audio_stream(audio_path: String) -> AudioStream:
+	if audio_path.is_empty():
+		return null
+
+	# 1. If imported in editor / packaged in PCK or APK, ResourceLoader.load() is fast and resolves .import
+	if ResourceLoader.has_cached(audio_path) or ResourceLoader.exists(audio_path):
+		var res = load(audio_path)
+		if res is AudioStream:
+			return res
+
+	# 2. Check localized and globalized filesystem paths for unimported / loose runtime files
 	var abs_path: String = ProjectSettings.globalize_path(audio_path)
 	var resolved_path: String = audio_path
 	if not FileAccess.file_exists(resolved_path):
@@ -172,13 +182,7 @@ func load_audio_stream(audio_path: String) -> AudioStream:
 			push_error("LevelLoader: Audio file not found: " + audio_path)
 			return null
 
-	# If imported in editor, ResourceLoader.load() is fast and cached
-	if ResourceLoader.has_cached(resolved_path) or ResourceLoader.exists(resolved_path):
-		var res = load(resolved_path)
-		if res is AudioStream:
-			return res
-
-	# Otherwise, load raw bytes directly from disk (handles unimported runtime files & headless)
+	# 3. If file exists as loose unimported file on disk (handles unimported runtime files & custom songs)
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(resolved_path)
 	if bytes.is_empty():
 		push_error("LevelLoader: Audio file empty or could not be read: " + resolved_path)

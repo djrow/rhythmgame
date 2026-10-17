@@ -58,7 +58,9 @@ func _setup_bus_and_capture() -> void:
 		AudioServer.set_bus_send(record_bus_idx, &"") # Prevent feedback loop
 
 	# Mute Record bus output so mic doesn't echo out of speakers (AudioEffectCapture runs pre-mute)
-	AudioServer.set_bus_mute(record_bus_idx, true)
+	# Never mute bus 0 (Master)
+	if record_bus_idx > 0:
+		AudioServer.set_bus_mute(record_bus_idx, true)
 
 	# Locate or attach AudioEffectCapture
 	var effect_count: int = AudioServer.get_bus_effect_count(record_bus_idx)
